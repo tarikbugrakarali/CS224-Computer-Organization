@@ -1,0 +1,363 @@
+CS224
+LAB 01
+SECTION 2
+TARIK BUĞRA KARALİ
+21703937
+-------------------------------------------------------------------
+PART 1
+
+lw $t0, arrsize
+la $t1, array
+li $t2, 0 # flag = 0
+li $t7, 0 # counter = 0
+li $s5, 2 # s5 = 2
+
+div $s0, $t0, $s5 # s0 = size / 2
+
+lw $t3,0($t1) #first element of array
+
+sll $t4,$t0,2
+subi $t4,$t4,4
+add $t5 , $t1,$t4
+lw $t6 , 0($t5) # last element of array
+
+
+loop:
+    bge $t7,$s0,end
+    bne $t3,$t6,else
+    addi $t1,$t1,4
+    subi $t5,$t5,4
+    addi $t7,$t7,1
+    lw $t3,0($t1)
+    lw $t6 , 0($t5)
+    
+    
+    j loop
+
+end:
+    j cont
+
+else: 
+     li $t2 , 1
+     j cont
+
+cont:     
+     li $t8,1
+     bne $t2,$t8,print
+     j x
+x:
+   la $a0,prompt2	# print string before result
+   li $v0,4
+   syscall
+   	
+   j finish
+
+print: 
+
+	la $a0,prompt1	# print string before result
+	li $v0,4
+	syscall
+  
+        j finish
+
+finish:
+
+
+
+	.data
+prompt1:	.asciiz "The above array is symmetric"
+prompt2:	.asciiz "The above array is not symmetric"
+array: .word 1, 2,2,3,3,2,2, 1
+arrsize: .word 8
+------------------------------------------------------------
+PART2
+
+.data
+  prompt: .asciiz "Write a :"
+  prompt2: .asciiz "Write b :"
+  prompt3: .asciiz "Write c :"
+  prompt4: .asciiz "Write d :"
+  res: .asciiz "Result:"
+  
+.text
+  
+  li $v0,4
+  la $a0,prompt
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t0,$v0 # t0 = a
+
+  li $v0,4
+  la $a0,prompt2
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t1,$v0 # t1 = b
+  
+  li $v0,4
+  la $a0,prompt3
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t2,$v0 # t2 = c
+  
+  li $v0,4
+  la $a0,prompt4
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t3,$v0 # t3 = d
+  
+  #calculation
+  
+  sub $t4,$t1,$t2 # t4 = b -c
+  mult $t0,$t4
+  mfhi $t5 # t5 = a*(b-c)
+  mflo $t7
+  
+  beq $t5,$0,easy
+  # calculation of 16^8 's remainder
+  addi $s0,$0,16
+  sll $s0,$s0,28
+  div $s0,$t3 
+  mfhi $s1
+  sll $s1,$s1,4
+  div $s1,$t3 
+  mfhi $s1
+ # msb * 16^8 + lsb = res (mod d )
+  mul $s1,$s1,$t5
+  div $s1,$t3 
+  mfhi $s1
+  div $t7,$t3 
+  mfhi $s2
+  add $t6,$s1,$s2
+  j print  
+ 
+  
+  easy:
+      div $t7,$t3 
+      mfhi $t6
+      j print
+  print: #print
+      li $v0,4
+      la $a0,res
+      syscall 
+      li $v0,1
+      move $a0,$t6
+      syscall 
+------------------------------------------------------------------
+PART3
+
+lw $t0, arrsize
+la $t1, array
+li $t2, 0 # total = 0
+li $t3, 0 # counter = 0
+li $t4, 0 # max = 0
+
+
+la $a0,str	# print string before result
+li $v0,4
+syscall
+la $a0,str2	# print string before result
+li $v0,4
+syscall
+la $a0,str3	# print string before result
+li $v0,4
+syscall
+	
+lw $t6,0($t1) #first element of array
+lw $t5,0($t1)
+
+loop:
+    bge  $t3,$t0,end
+    li $v0, 34
+    add $a0, $zero, $t1
+    syscall
+    la $a0,str4	# print string before result
+    li $v0,4
+    syscall
+    li $v0,1
+    addi $a0,$t6,0
+    syscall
+    li      $v0,4       
+    la      $a0,string  
+    syscall 
+    
+    add $t2,$t6,$t2
+    bgt $t6,$t4,max
+    add $t1,$t1,4
+    add $t3,$t3,1
+    lw $t6,0($t1)
+    
+    j loop
+max:
+    move $t4,$t6
+    add $t1,$t1,4
+    add $t3,$t3,1
+    lw $t6,0($t1)
+    j loop
+end:
+    la $t1, array
+    li $t3, 0 
+    lw $t6,0($t1)
+    j cont
+
+cont:     
+    bgt $t3,$t0,print
+    blt  $t6,$t4,min
+    add $t1,$t1,4
+    add $t3,$t3,1
+    lw $t6,0($t1)
+  
+   	
+    j cont
+min:
+    move $t5,$t6
+    add $t1,$t1,4
+    add $t3,$t3,1
+    lw $t6,0($t1)
+    j cont
+
+print: 
+
+	la $a0,prompt2	# print string before result
+	li $v0,4
+	syscall
+	li $v0,1
+	div $a0,$t2,$t0
+	syscall
+	li      $v0,4       
+        la      $a0,string  
+        syscall             # Ask the operating system to 
+	la $a0,prompt1	# print string before result
+	li $v0,4
+	syscall
+	li $v0,1
+	addi $a0,$t4,0
+	syscall
+	li      $v0,4       
+        la      $a0,string  
+        syscall             # Ask the operating system to 
+	la $a0,prompt3	# print string before result
+	li $v0,4
+	syscall
+	li $v0,1
+	addi $a0,$t5,0
+	syscall
+	
+	
+  
+        j finish
+
+finish:
+
+
+
+	.data
+prompt1:	.asciiz "The maximum : "
+prompt2:	.asciiz "The average : "
+prompt3:	.asciiz "The minimum : "
+string: .asciiz      "\n"
+str:"Memory Address Array Element \n"
+str2:.asciiz "Position (hex)   Value (int) \n"
+str3: .asciiz " ============= =========== \n"
+str4: .asciiz "         "
+array: .word 1, 2,2,4,2, 1
+arrsize: .word 6
+-------------------------------------------------------------------------
+PART 4
+.data
+  prompt: .asciiz "Write a :"
+  prompt2: .asciiz "Write b :"
+  prompt3: .asciiz "Write c :"
+  prompt4: .asciiz "Write d :"
+  res: .asciiz "Result:"
+  
+.text
+  li $v0,4
+  la $a0,prompt
+  syscall 
+  li $v0,5
+  syscall 
+  
+  move $t0,$v0 # t0 = b
+  li $v0,4
+  la $a0,prompt2
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t1,$v0 # t1 = b
+  
+  li $v0,4
+  la $a0,prompt3
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t2,$v0 # t2 = c
+  
+  li $v0,4
+  la $a0,prompt4
+  syscall 
+  
+  li $v0,5
+  syscall 
+  
+  move $t3,$v0 # t3 = d
+  
+  #calculation
+  
+ 
+  mult $t0,$t2
+  mfhi $t5 # t5 = b*c
+  mflo $t7
+  
+  beq $t5,$0,easy
+  # calculation of 16^8 's remainder
+  #addi $s0,$0,16
+  #sll $s0,$s0,28
+ #div $s0,$t3 
+  #mfhi $s1
+  #sll $s1,$s1,4
+ # div $s1,$t3 
+  #mfhi $s1
+ # msb * 16^8 + lsb = res (mod d )
+ div $t1,$t2 
+ mflo $t6 # B/C
+ add $s0,$t0,$t6 # s0 = A + B/C
+ div $s0,$t3
+ mfhi $s1
+ sub $s1,$s1,$t7
+ j print 
+ 
+  
+  easy:
+      div $t1,$t2 
+      mflo $t6 # B/C
+      add $s0,$t0,$t6 # s0 = A + B/C
+      div $s0,$t3
+      mfhi $s1
+      sub $s1,$s1,$t7
+      j print
+  print: #print
+      li $v0,4
+      la $a0,res
+      syscall 
+      li $v0,1
+      move $a0,$s1
+      syscall
+
+
+-----------------------------------------------------
